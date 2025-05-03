@@ -2,158 +2,114 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Séminaire MIDA – Animation Buffer Overflow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accueil – Séminaire MIDA</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #eef3f8;
-      color: #222;
-      text-align: center;
-      padding: 30px;
       margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #004080, #007acc);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+      max-width: 700px;
+      width: 90%;
     }
 
     h1 {
-      background: #004080;
-      color: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      margin-bottom: 30px;
+      font-size: 2.5em;
+      margin-bottom: 10px;
     }
 
-    canvas {
-      border: 1px solid #ccc;
-      background: white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      margin-top: 20px;
+    p {
+      font-size: 1.2em;
+      margin-top: 0;
+      line-height: 1.6;
     }
 
-    #message {
-      font-size: 18px;
-      margin: 25px auto 20px;
-      max-width: 800px;
-      background: #ffffff;
-      padding: 15px 25px;
-      border-left: 6px solid #004080;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    .group {
+      margin-top: 30px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
     }
 
-    button {
-      margin-top: 10px;
-      padding: 12px 25px;
-      font-size: 16px;
+    .group h2 {
+      margin-bottom: 15px;
+      font-size: 1.5em;
+      color: #fff;
+    }
+
+    .names {
+      list-style: none;
+      padding: 0;
       font-weight: bold;
-      background: #0077cc;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s ease;
     }
 
-    button:hover {
-      background: #005fa3;
+    .names li {
+      margin: 5px 0;
+    }
+
+    .btn {
+      margin-top: 30px;
+      padding: 14px 28px;
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #004080;
+      background: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .btn:hover {
+      background: #e0e0e0;
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2em;
+      }
+
+      p {
+        font-size: 1em;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Bienvenue au Séminaire MIDA</h1>
+    <p>Ce site présente des démonstrations interactives de failles de sécurité informatique comme les <strong>Buffer Overflow</strong>, le <strong>Canary</strong> et l' <strong>Escalade des privillèges</strong>.</p>
 
-<h1>Séminaire MIDA – Animation pédagogique : Buffer Overflow</h1>
+    <div class="group">
+      <h2>Groupe 6 – Membres</h2>
+      <ul class="names">
+        <li>KELI Kekeli Christ</li>
+        <li>KOUWADAN Ambroise</li>
+        <li>KLIDJE</li>
+        <li>CEPHAS</li>
+        <li>KOMLA-EBRI Emanuel</li>
+      </ul>
+    </div>
 
-<canvas id="canvas" width="950" height="200"></canvas>
-
-<div id="message">Clique sur "Lancer" pour commencer l’animation</div>
-
-<button onclick="startAnimation()">Lancer</button>
-
-<script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-
-const bufferSize = 8;
-const totalSize = 12;
-const cellSize = 70;
-let dataIndex = 0;
-let animationStep = 0;
-let interval;
-
-const messages = [
-  "Étape 1 : Le programme alloue un tampon fixe de 8 cases (zones en noir).",
-  "Étape 2 : Le tampon est rempli correctement avec des données (D1 à D8).",
-  "Étape 3 : Les données continuent à s’écrire au-delà du tampon — débordement !",
-  "Étape 4 : Une donnée écrase l’adresse de retour — une faille critique se crée.",
-  "Étape 5 : Un attaquant peut injecter du code malveillant (shellcode).",
-];
-
-function drawBuffer(currentData = -1, showShellcode = false) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  for (let i = 0; i < totalSize; i++) {
-    ctx.strokeStyle = i < bufferSize ? "#000" : "#c00";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(30 + i * cellSize, 80, cellSize - 10, 60);
-
-    if (i === bufferSize + 2) {
-      ctx.fillStyle = "#444";
-      ctx.font = "14px Arial";
-      ctx.fillText("↩ retour", 30 + i * cellSize + 4, 160);
-    }
-
-    if (i < dataIndex) {
-      ctx.fillStyle = i < bufferSize ? "#0a0" : "#f00";
-      ctx.font = "18px Arial";
-      ctx.fillText("D" + (i + 1), 30 + i * cellSize + 20, 115);
-    }
-
-    if (showShellcode && i === bufferSize + 2) {
-      ctx.fillStyle = "#900";
-      ctx.font = "16px Arial";
-      ctx.fillText("💀 shellcode", 30 + i * cellSize - 10, 100);
-    }
-  }
-}
-
-function updateMessage(index) {
-  document.getElementById("message").innerText = messages[index] || "";
-}
-
-function startAnimation() {
-  dataIndex = 0;
-  animationStep = 0;
-  clearInterval(interval);
-  updateMessage(0);
-  drawBuffer();
-
-  interval = setInterval(() => {
-    dataIndex++;
-    drawBuffer(dataIndex, animationStep >= 4);
-
-    if (dataIndex === bufferSize) {
-      animationStep = 1;
-      updateMessage(1);
-    }
-    if (dataIndex === bufferSize + 1) {
-      animationStep = 2;
-      updateMessage(2);
-    }
-    if (dataIndex === bufferSize + 2) {
-      animationStep = 3;
-      updateMessage(3);
-    }
-    if (dataIndex === bufferSize + 3) {
-      animationStep = 4;
-      updateMessage(4);
-    }
-    if (dataIndex >= totalSize) {
-      clearInterval(interval);
-    }
-  }, 800);
-}
-</script>
-<a href="index2.html" target="_blank" rel="noopener noreferrer"><button type="button">Escalade Animation</button></a>
-
+    <button class="btn" onclick="window.location.href='index1.html'">
+      Lancer la démonstration
+    </button>
+  </div>
 </body>
 </html>

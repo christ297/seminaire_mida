@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Séminaire MIDA – Animation Canary</title>
+  <title>Séminaire MIDA – Animation Buffer Overflow</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -61,7 +61,7 @@
 </head>
 <body>
 
-<h1>Séminaire MIDA – Animation pédagogique : Stack Canary</h1>
+<h1>Séminaire MIDA – Animation pédagogique : Buffer Overflow</h1>
 
 <canvas id="canvas" width="950" height="200"></canvas>
 
@@ -80,19 +80,15 @@ let dataIndex = 0;
 let animationStep = 0;
 let interval;
 
-// Canaries - a random value that is checked before critical operations
-const canaryValue = Math.random().toString(36).substring(7);  // Random "canary"
-let canaryTampered = false;  // Flag to check tampering
-
 const messages = [
-  "Étape 1 : Le programme alloue un tampon fixe de 8 cases et un canary avant l'adresse de retour.",
+  "Étape 1 : Le programme alloue un tampon fixe de 8 cases (zones en noir).",
   "Étape 2 : Le tampon est rempli correctement avec des données (D1 à D8).",
-  "Étape 3 : Un débordement de tampon écrase le canary, signalant une altération.",
-  "Étape 4 : Le programme détecte la modification du canary et interrompt l'exécution.",
-  "Étape 5 : Si le canary est intact, l'opération critique se poursuit avec succès.",
+  "Étape 3 : Les données continuent à s’écrire au-delà du tampon — débordement !",
+  "Étape 4 : Une donnée écrase l’adresse de retour — une faille critique se crée.",
+  "Étape 5 : Un attaquant peut injecter du code malveillant (shellcode).",
 ];
 
-function drawBuffer(currentData = -1, showCanary = true) {
+function drawBuffer(currentData = -1, showShellcode = false) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (let i = 0; i < totalSize; i++) {
@@ -100,7 +96,7 @@ function drawBuffer(currentData = -1, showCanary = true) {
     ctx.lineWidth = 2;
     ctx.strokeRect(30 + i * cellSize, 80, cellSize - 10, 60);
 
-    if (i === bufferSize + 1) {
+    if (i === bufferSize + 2) {
       ctx.fillStyle = "#444";
       ctx.font = "14px Arial";
       ctx.fillText("↩ retour", 30 + i * cellSize + 4, 160);
@@ -112,10 +108,10 @@ function drawBuffer(currentData = -1, showCanary = true) {
       ctx.fillText("D" + (i + 1), 30 + i * cellSize + 20, 115);
     }
 
-    if (showCanary && i === bufferSize) {
+    if (showShellcode && i === bufferSize + 2) {
       ctx.fillStyle = "#900";
       ctx.font = "16px Arial";
-      ctx.fillText("💀 Canari : " + canaryValue, 30 + i * cellSize - 10, 100);
+      ctx.fillText("💀 shellcode", 30 + i * cellSize - 10, 100);
     }
   }
 }
@@ -133,7 +129,7 @@ function startAnimation() {
 
   interval = setInterval(() => {
     dataIndex++;
-    drawBuffer(dataIndex, animationStep >= 3);
+    drawBuffer(dataIndex, animationStep >= 4);
 
     if (dataIndex === bufferSize) {
       animationStep = 1;
@@ -157,6 +153,7 @@ function startAnimation() {
   }, 800);
 }
 </script>
-<a href="index1.html" target="_blank" rel="noopener noreferrer"><button type="button">Buffer Animation</button></a>
+<a href="index2.html" target="_blank" rel="noopener noreferrer"><button type="button">Escalade Animation</button></a>
+
 </body>
 </html>
