@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vulnérabilité OS – Escalade de privilèges</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      color: #333;
+      text-align: center;
+      padding: 30px;
+      margin: 0;
+    }
+    h1 {
+      background: #002b5c;
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 40px;
+      font-size: 28px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    #canvas {
+      background: #fff;
+      border: 2px solid #ccc;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    #message {
+      margin: 20px auto;
+      max-width: 800px;
+      padding: 20px;
+      background: #fff;
+      border-left: 6px solid #002b5c;
+      border-radius: 10px;
+      font-size: 18px;
+      line-height: 1.5;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    button {
+      padding: 12px 25px;
+      font-size: 18px;
+      background: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Vulnérabilité Système OS : Escalade de privilèges</h1>
+
+<canvas id="canvas" width="900" height="400"></canvas>
+
+<div id="message">Cliquez sur "Lancer" pour démarrer l'animation.</div>
+
+<button onclick="startAnimation()">Lancer l'animation</button>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let step = 0;
+let interval;
+let nextStepDelay = 3000; // 3 secondes de pause entre les étapes
+
+const messages = [
+  "Étape 1 : L'utilisateur standard se connecte au système avec des privilèges limités.",
+  "Étape 2 : L'utilisateur découvre une vulnérabilité dans un service du système d'exploitation.",
+  "Étape 3 : L'utilisateur exploite la vulnérabilité et obtient des privilèges d'administrateur.",
+  "Étape 4 : L'administrateur accède à des fichiers sensibles et les modifie.",
+  "Étape 5 : Un backdoor est injecté pour un accès persistant par l'attaquant.",
+  "Étape 6 : Même après un redémarrage, la vulnérabilité subsiste, permettant un accès continu."
+];
+
+function drawScene(currentStep) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Système
+  ctx.fillStyle = "#e5e5e5";
+  ctx.fillRect(100, 50, 700, 250);
+  ctx.strokeStyle = "#333";
+  ctx.strokeRect(100, 50, 700, 250);
+  ctx.fillStyle = "#000";
+  ctx.font = "16px Arial";
+  ctx.fillText("Système d'exploitation", 330, 40);
+
+  // Étapes avec des icônes et annotations
+  if (currentStep >= 1) {
+    // Utilisateur standard
+    ctx.fillStyle = "#0077cc";
+    ctx.beginPath();
+    ctx.arc(160, 250, 30, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.fillText("👤", 150, 260);
+    ctx.fillText("Utilisateur Standard", 120, 290);
+  }
+
+  if (currentStep >= 2) {
+    // Faille découverte
+    ctx.fillStyle = "#ff9900";
+    ctx.fillRect(380, 110, 90, 30);
+    ctx.fillStyle = "#000";
+    ctx.fillText("🛠️ Faille", 395, 130);
+  }
+
+  if (currentStep >= 3) {
+    // Escalade de privilèges
+    ctx.strokeStyle = "#f00";
+    ctx.beginPath();
+    ctx.moveTo(160, 250);
+    ctx.lineTo(460, 160);
+    ctx.stroke();
+
+    ctx.fillStyle = "#d00";
+    ctx.beginPath();
+    ctx.arc(460, 160, 30, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.fillText("👑", 450, 170);
+    ctx.fillText("Administrateur", 440, 190);
+  }
+
+  if (currentStep >= 4) {
+    // Fichiers sensibles
+    ctx.fillStyle = "#900";
+    ctx.fillRect(620, 130, 120, 40);
+    ctx.fillStyle = "#fff";
+    ctx.fillText("💀 Backdoor", 625, 150);
+  }
+
+  if (currentStep >= 5) {
+    // Modifications des fichiers
+    ctx.fillStyle = "#ffcc00";
+    ctx.fillRect(620, 50, 120, 40);
+    ctx.fillStyle = "#000";
+    ctx.fillText("🔒 Fichiers", 625, 70);
+  }
+}
+
+function updateMessage(step) {
+  document.getElementById('message').innerText = messages[step];
+}
+
+function startAnimation() {
+  step = 0;
+  clearInterval(interval);
+  drawScene(step);
+  updateMessage(step);
+
+  interval = setInterval(() => {
+    step++;
+    drawScene(step);
+    updateMessage(step);
+    if (step >= messages.length - 1) {
+      clearInterval(interval);
+    }
+  }, nextStepDelay);  // Pause de 3 secondes entre chaque étape
+}
+</script>
+<a href="index3.html" target="_blank" rel="noopener noreferrer"><button type="button">Canary Animation</button></a>
+
+</body>
+</html>

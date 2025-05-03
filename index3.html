@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Séminaire MIDA – Animation Canary</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eef3f8;
+      color: #222;
+      text-align: center;
+      padding: 30px;
+      margin: 0;
+    }
+
+    h1 {
+      background: #004080;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      margin-bottom: 30px;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    #message {
+      font-size: 18px;
+      margin: 25px auto 20px;
+      max-width: 800px;
+      background: #ffffff;
+      padding: 15px 25px;
+      border-left: 6px solid #004080;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 12px 25px;
+      font-size: 16px;
+      font-weight: bold;
+      background: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #005fa3;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Séminaire MIDA – Animation pédagogique : Stack Canary</h1>
+
+<canvas id="canvas" width="950" height="200"></canvas>
+
+<div id="message">Clique sur "Lancer" pour commencer l’animation</div>
+
+<button onclick="startAnimation()">Lancer</button>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const bufferSize = 8;
+const totalSize = 12;
+const cellSize = 70;
+let dataIndex = 0;
+let animationStep = 0;
+let interval;
+
+// Canaries - a random value that is checked before critical operations
+const canaryValue = Math.random().toString(36).substring(7);  // Random "canary"
+let canaryTampered = false;  // Flag to check tampering
+
+const messages = [
+  "Étape 1 : Le programme alloue un tampon fixe de 8 cases et un canary avant l'adresse de retour.",
+  "Étape 2 : Le tampon est rempli correctement avec des données (D1 à D8).",
+  "Étape 3 : Un débordement de tampon écrase le canary, signalant une altération.",
+  "Étape 4 : Le programme détecte la modification du canary et interrompt l'exécution.",
+  "Étape 5 : Si le canary est intact, l'opération critique se poursuit avec succès.",
+];
+
+function drawBuffer(currentData = -1, showCanary = true) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 0; i < totalSize; i++) {
+    ctx.strokeStyle = i < bufferSize ? "#000" : "#c00";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(30 + i * cellSize, 80, cellSize - 10, 60);
+
+    if (i === bufferSize + 1) {
+      ctx.fillStyle = "#444";
+      ctx.font = "14px Arial";
+      ctx.fillText("↩ retour", 30 + i * cellSize + 4, 160);
+    }
+
+    if (i < dataIndex) {
+      ctx.fillStyle = i < bufferSize ? "#0a0" : "#f00";
+      ctx.font = "18px Arial";
+      ctx.fillText("D" + (i + 1), 30 + i * cellSize + 20, 115);
+    }
+
+    if (showCanary && i === bufferSize) {
+      ctx.fillStyle = "#900";
+      ctx.font = "16px Arial";
+      ctx.fillText("💀 Canari : " + canaryValue, 30 + i * cellSize - 10, 100);
+    }
+  }
+}
+
+function updateMessage(index) {
+  document.getElementById("message").innerText = messages[index] || "";
+}
+
+function startAnimation() {
+  dataIndex = 0;
+  animationStep = 0;
+  clearInterval(interval);
+  updateMessage(0);
+  drawBuffer();
+
+  interval = setInterval(() => {
+    dataIndex++;
+    drawBuffer(dataIndex, animationStep >= 3);
+
+    if (dataIndex === bufferSize) {
+      animationStep = 1;
+      updateMessage(1);
+    }
+    if (dataIndex === bufferSize + 1) {
+      animationStep = 2;
+      updateMessage(2);
+    }
+    if (dataIndex === bufferSize + 2) {
+      animationStep = 3;
+      updateMessage(3);
+    }
+    if (dataIndex === bufferSize + 3) {
+      animationStep = 4;
+      updateMessage(4);
+    }
+    if (dataIndex >= totalSize) {
+      clearInterval(interval);
+    }
+  }, 800);
+}
+</script>
+<a href="index.html" target="_blank" rel="noopener noreferrer"><button type="button">Buffer Animation</button></a>
+</body>
+</html>
